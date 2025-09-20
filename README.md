@@ -1,2 +1,11 @@
-# STM32F103VE_initial_template_std_periph
- Initial template no-HAL no-LL
+# Health Check Device
+
+## STM32F103C8
+
+### Features
+
+* Straightforward peripheral initialization
+
+---
+
+&copy; 2017-2025, Askug Ltd., Dmitry Slobodchikov
