@@ -11,35 +11,10 @@
  
 /* Includes ------------------------------------------------------------------*/
 #include "common.h"
-#include <sys/_timespec.h>
 
 /* Private function prototypes -----------------------------------------------*/
 __STATIC_INLINE uint32_t ITM_SendCharChannel(uint32_t ch, uint32_t channel);
 __STATIC_INLINE void _putc(uint8_t ch);
-extern int __io_getchar(void) __attribute__((weak));
-
-
-
-
-struct stat {
-  dev_t		st_dev;
-  ino_t		st_ino;
-  mode_t	st_mode;
-  nlink_t	st_nlink;
-  uid_t		st_uid;
-  gid_t		st_gid;
-  dev_t		st_rdev;
-  off_t		st_size;
-  struct timespec st_atim;
-  struct timespec st_mtim;
-  struct timespec st_ctim;
-  blksize_t     st_blksize;
-  blkcnt_t	st_blocks;
-};
-
-
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,15 +81,16 @@ __STATIC_INLINE void _putc(uint8_t ch) {
   if (ch == '\n') _putc('\r');
 
   #ifdef SWO_ITM
-    ITM_SendCharChannel(ch, 0);
-  #endif
+    ITM_SendCharChannel(ch, SWO_ITM);
+ #endif
 
-  #ifdef SWO_USART
-    USART1->DR = ch;
-    check = 0;
-    while (!check) {
-      check = PREG_CHECK(USART1->SR, USART_SR_TXE_Pos);
-    }
+ #ifdef SWO_DSPL
+    PrintCharDisplay(ch, SWO_DSPL);
+ #endif
+
+ #ifdef SWO_USART
+    while (!(PREG_CHECK(SWO_USART->SR, USART_SR_TXE_Pos)));
+    SWO_USART->DR = ch;
   #endif
 }
 
@@ -138,37 +114,18 @@ int _write(int32_t file, char *ptr, int32_t len) {
 
 
 
-int _read(int file, char *ptr, int len) {
-  (void)file;
-  int DataIdx;
-
-  for (DataIdx = 0; DataIdx < len; DataIdx++) {
-    *ptr++ = __io_getchar();
-  }
-
-  return len;
-}
-
-
-
-int _fstat(int file, struct stat *st) {
-  (void)file;
-  st->st_mode = 0020000;
-  return 0;
-}
-
-
-
-
 #ifdef  USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
+  * @brief  The assert_param macro is used for function's parameters check.
+  * @param  expr If expr is false, it calls assert_failed function
+  *         which reports the name of the source file and the source
+  *         line number of the call that failed.
+  *         If expr is true, it returns no value.
   * @retval None
   */
-void assert_failed(uint8_t *file, uint32_t line) { 
-  printf("Wrong parameters value: file %s on line %d\n", file, line);
-}
+#define assert_param(expr) ((expr) ? (void)0U : assert_failed((uint8_t *)__FILE__, __LINE__))
+/* Exported functions ------------------------------------------------------- */
+void assert_failed(uint8_t *file, uint32_t line);
+#else
+#define assert_param(expr) ((void)0U)
 #endif /* USE_FULL_ASSERT */

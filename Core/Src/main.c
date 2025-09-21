@@ -19,6 +19,8 @@
 static void exampleTask( void * parameters );
 
 int LED_Init(GPIO_TypeDef*, uint16_t);
+int USART_Init(USART_TypeDef*);
+
 
 
 
@@ -78,7 +80,8 @@ static void exampleTask( void * parameters ) {
     while(1) {
         /* Example Task Code */
         LED_Blink(GPIOC, GPIO_PIN_13);
-        vTaskDelay( 100 ); /* delay 100 ticks */
+        printf("test\n");
+        vTaskDelay( 1000 ); /* delay 100 ticks */
     }
 }
 
@@ -110,6 +113,8 @@ void SystemInit (void) {
     PREG_CLR(FLASH->ACR, FLASH_ACR_PRFTBE_Pos);
   #endif /* PREFETCH_ENABLE */
 
+  __NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
   /* SysCfg */
   PREG_SET(RCC->APB2ENR, RCC_APB2ENR_AFIOEN_Pos);
   while (!(PREG_CHECK(RCC->APB2ENR, RCC_APB2ENR_AFIOEN_Pos)));
@@ -125,8 +130,8 @@ void SystemInit (void) {
   }
 
   /* JTAG-DP disabled and SW-DP enabled */
-  CLEAR_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG);
-  SET_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG_JTAGDISABLE);
+  // CLEAR_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG);
+  // SET_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG_JTAGDISABLE);
 
   /* HSE enable and wait until it runs */
   PREG_SET(RCC->CR, RCC_CR_HSEON_Pos);
@@ -212,13 +217,14 @@ void SystemInit (void) {
 
 
   LED_Init(GPIOC, GPIO_PIN_13);
+  USART_Init(USART1);
 
 }
 
 
 
 /**
-  * @brief  Initiates PIN 6 and 7 on GPIOA port as outputs to blink correspondent LEDs
+  * @brief  Initiates PIN 13 on GPIOC port as outputs to blink correspondent LEDs
   *  on the board. Pins are set on the lowest speed, push-pull, no pull-up neither pull-down
   * @param  None
   * @return None
@@ -228,6 +234,32 @@ int LED_Init(GPIO_TypeDef* port, uint16_t pinSource) {
   pinSource = (pinSource >= 8) ? (pinSource - 8)*4 : pinSource*4;
 
   MODIFY_REG(port->CRH, 0xf << pinSource, _IOS_2 << pinSource);
+
+  return 0;
+}
+
+
+/**
+  * @brief  Initiates PIN 13 on GPIOC port as outputs to blink correspondent LEDs
+  *  on the board. Pins are set on the lowest speed, push-pull, no pull-up neither pull-down
+  * @param  None
+  * @return None
+  */
+int USART_Init(USART_TypeDef* port) {
+
+  MODIFY_REG(GPIOA->CRH, GPIO_PIN_9_Mask|GPIO_PIN_10_Mask, (((_IOS_50|_AF_PP) << (GPIO_PIN_9-8)*4)|(_IN_FL << (GPIO_PIN_10-8)*4)));
+
+
+  #define USART1_BAUDRATE         115200
+  #define USART1_FRACTION         0x0001 /* If baudrate = 9600 -> Fractual = 0x0120 */
+  #define USART1_BAUDRATE_CALC    ((configCPU_CLOCK_HZ / (USART1_BAUDRATE * 16)) << 4) | USART1_FRACTION
+
+  port->BRR = USART1_BAUDRATE_CALC;
+  port->CR1 |= (USART_CR1_TE|USART_CR1_RE|USART_CR1_RXNEIE|USART_CR1_UE);
+  
+  /* USART1_IRQn interrupt configuration */
+  NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
+  NVIC_EnableIRQ(USART1_IRQn);
 
   return 0;
 }

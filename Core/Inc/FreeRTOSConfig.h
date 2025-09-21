@@ -71,18 +71,13 @@
 
 
 /* Cortex-M specific definitions. */
-#ifdef __NVIC_PRIO_BITS
- /* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
- #define configPRIO_BITS         __NVIC_PRIO_BITS
-#else
- #define configPRIO_BITS         4
-#endif
+#define configPRIO_BITS         4
 
 
 /* The lowest interrupt priority that can be used in a call to a "set priority"
 function. */
-#define configASKUG_LOWEST_INTERRUPT_PRIORITY   15
-#define configASKUG_MAX_SYSCALL_INTERRUPT_PRIORITY 5
+#define configASKUG_LOWEST_INTERRUPT_PRIORITY       15
+#define configASKUG_MAX_SYSCALL_INTERRUPT_PRIORITY  4
 
 /******************************************************************************/
 /* Scheduling behaviour related definitions. **********************************/
@@ -661,9 +656,9 @@ function. */
 #define INCLUDE_xTaskResumeFromISR             1
 
 
-#define vPortSVCHandler    SVC_Handler
-#define xPortPendSVHandler PendSV_Handler
-#define xPortSysTickHandler SysTick_Handler
+#define vPortSVCHandler           SVC_Handler
+#define xPortPendSVHandler        PendSV_Handler
+#define xPortSysTickHandler       SysTick_Handler
 
 
 #endif /* FREERTOS_CONFIG_H */

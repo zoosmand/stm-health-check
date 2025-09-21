@@ -93,6 +93,8 @@ void RCC_IRQHandler(void) {
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void) {
+  PREG_CLR(USART1->SR, USART_SR_RXNE_Pos);
+  (void) USART1->DR; /* TODO Create USART RX Handler. */
 }
 
 /**

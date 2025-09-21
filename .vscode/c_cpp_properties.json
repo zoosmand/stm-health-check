@@ -32,11 +32,12 @@
             "PREFETCH_ENABLE=1",
             "INSTRUCTION_CACHE_ENABLE=1",
             "DATA_CACHE_ENABLE=1",
-            "STM32F103xB"
+            "STM32F103xB",
+            "SWO_ITM=0"
          ],
          "intelliSenseMode": "macos-clang-arm64",
-         "cStandard": "c11",
-         "cppStandard": "c++17",
+         "cStandard": "c23",
+         "cppStandard": "c++23",
          "browse": {
             "path": [
                "${workspaceRoot}",
@@ -58,8 +59,10 @@
             "${env:VSARM}/arm-gcc/arm-none-eabi/include",
             "${workspaceRoot}/Drivers/CMSIS/Include",
             "${workspaceRoot}/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+            "${workspaceRoot}/Drivers/STM32F10x_StdPeriph_Driver/inc",
             "${workspaceRoot}/Core/Inc",
-            "${workspaceRoot}/Tasks/Led/Inc"
+            "${workspaceRoot}/FreeRTOS-Kernel/include",
+            "${workspaceRoot}/FreeRTOS-Kernel/portable/GCC/ARM_CM3"
          ],
          "defines": [
             "DEBUG",
@@ -77,11 +80,12 @@
             "PREFETCH_ENABLE=1",
             "INSTRUCTION_CACHE_ENABLE=1",
             "DATA_CACHE_ENABLE=1",
-            "STM32F103x8"
+            "STM32F103x8",
+            "SWO_USART=USART1"
          ],
          "intelliSenseMode": "linux-gcc-x64",
-         "cStandard": "c11",
-         "cppStandard": "c++17",
+         "cStandard": "c23",
+         "cppStandard": "c++23",
          "browse": {
             "path": [
                "${workspaceRoot}",
