@@ -11,39 +11,34 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* Global variables ---------------------------------------------------------*/
+/* Global variables ----------------------------------------------------------*/
+__IO uint32_t _PREG_ = 0;
 
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
-static void exampleTask( void * parameters );
 
-int LED_Init(GPIO_TypeDef*, uint16_t);
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
-  * @brief  Main program.
+  * @brief  Main program entry point.
   * @param  None
   * @retval None
   */
 int main(void) {
 
-  static StaticTask_t exampleTaskTCB;
-  static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
+  /* Initialization of necessary peripherals */
+  if (!LED_Init(GPIOC, GPIO_PIN_13)) FLAG_SET(_PREG_, _PR_HEART_BEAT_LED);
+  if (!USART_Init(USART1)) FLAG_SET(_PREG_, _PR_USART);
 
-  ( void ) printf( "Example FreeRTOS Project\n" );
-
-  ( void ) xTaskCreateStatic( exampleTask,
-                              "example",
-                              configMINIMAL_STACK_SIZE,
-                              NULL,
-                              configMAX_PRIORITIES - 1U,
-                              &( exampleTaskStack[ 0 ] ),
-                              &( exampleTaskTCB ) );
-
+  printf("Peripherals rediness list: 0x%08lx\n", _PREG_);
+  
+  
+  /* Run the Heartbeat Service */
+  HeartBeatService();
 
   /* Start the scheduler. */
   vTaskStartScheduler();
@@ -53,34 +48,22 @@ int main(void) {
 
 
 
-#if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
+#if (configCHECK_FOR_STACK_OVERFLOW > 0)
 
-    void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                        char * pcTaskName )
-    {
+    void vApplicationStackOverflowHook(TaskHandle_t xTask, char* pcTaskName) {
         /* Check pcTaskName for the name of the offending task,
          * or pxCurrentTCB if pcTaskName has itself been corrupted. */
-        ( void ) xTask;
-        ( void ) pcTaskName;
+        (void) xTask;
+        (void) pcTaskName;
     }
 
-#endif /* #if ( configCHECK_FOR_STACK_OVERFLOW > 0 ) */
+#endif /* #if (configCHECK_FOR_STACK_OVERFLOW > 0) */
 
 
 
 
 
-/*-----------------------------------------------------------*/
-static void exampleTask( void * parameters ) {
-    /* Unused parameters. */
-    ( void ) parameters;
 
-    while(1) {
-        /* Example Task Code */
-        LED_Blink(GPIOC, GPIO_PIN_13);
-        vTaskDelay( 100 ); /* delay 100 ticks */
-    }
-}
 
 
 
@@ -109,6 +92,8 @@ void SystemInit (void) {
   #else
     PREG_CLR(FLASH->ACR, FLASH_ACR_PRFTBE_Pos);
   #endif /* PREFETCH_ENABLE */
+
+  __NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
   /* SysCfg */
   PREG_SET(RCC->APB2ENR, RCC_APB2ENR_AFIOEN_Pos);
@@ -203,7 +188,7 @@ void SystemInit (void) {
   
   
   /* Stop ticking peripheral while debugging */
-  #if (DEBUG != 0)
+  #ifdef DEBUG
     SET_BIT(DBGMCU->CR , (
         DBGMCU_CR_DBG_IWDG_STOP
       | DBGMCU_CR_DBG_WWDG_STOP
@@ -211,23 +196,6 @@ void SystemInit (void) {
   #endif /* DEBUG */
 
 
-  LED_Init(GPIOC, GPIO_PIN_13);
 
 }
 
-
-
-/**
-  * @brief  Initiates PIN 6 and 7 on GPIOA port as outputs to blink correspondent LEDs
-  *  on the board. Pins are set on the lowest speed, push-pull, no pull-up neither pull-down
-  * @param  None
-  * @return None
-  */
-int LED_Init(GPIO_TypeDef* port, uint16_t pinSource) {
-
-  pinSource = (pinSource >= 8) ? (pinSource - 8)*4 : pinSource*4;
-
-  MODIFY_REG(port->CRH, 0xf << pinSource, _IOS_2 << pinSource);
-
-  return 0;
-}

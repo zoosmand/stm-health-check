@@ -11,8 +11,9 @@
 ######################################
 # target
 ######################################
-TARGET = F103C8_initial_template
+TARGET = F103C8_health_check
 
+SHELL = /bin/bash
 
 ######################################
 # building variables
@@ -21,7 +22,9 @@ TARGET = F103C8_initial_template
 DEBUG = 1
 # optimization
 OPT = -Og
-
+# platform
+ARCH := $(shell uname -m)
+SYS := $(shell uname -s)
 
 #######################################
 # paths
@@ -35,18 +38,24 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 $(wildcard Core/Src/*.c) \
+$(wildcard Periph/Src/*.c) \
+$(wildcard Srv/Src/*.c) \
 $(wildcard FreeRTOS-Kernel/*.c) \
 $(wildcard FreeRTOS-Kernel/portable/GCC/ARM_CM3/*.c) \
 FreeRTOS-Kernel/portable/MemMang/heap_4.c
 
-# Core/Src/main.c \
-# Core/Src/common.c \
-# Core/Src/stm32f10x_it.c
-
 # ASM sources
 ASM_SOURCES =  \
 startup_stm32f103xb.s \
-Core/Src/utils.s
+$(wildcard Core/*.s) \
+$(wildcard Periph/*.s) \
+$(wildcard Srv/*.s)
+
+# ASMM sources
+ASMM_SOURCES = \
+$(wildcard Core/*.S) \
+$(wildcard Periph/*.S) \
+$(wildcard Srv/*.S)
 
 
 #######################################
@@ -85,9 +94,6 @@ CPU = -mcpu=cortex-m3
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 
 # macros for gcc
-# AS defines
-AS_DEFS = 
-
 # C defines
 C_DEFS =  \
 -DHSE_VALUE=8000000 \
@@ -98,21 +104,26 @@ C_DEFS =  \
 -DLSI_VALUE=40000 \
 -DVDD_VALUE=3300 \
 -DPREFETCH_ENABLE=1 \
--DSTM32F103xB
+-DSTM32F103xB \
+-DUSE_FULL_ASSERT
 
-
-# AS includes
-AS_INCLUDES = 
+# AS defines
+AS_DEFS = $(C_DEFS) \
+-D__ASSEMBLER__
 
 # C includes
 C_INCLUDES =  \
 -ICore/Inc \
--IDrivers/STM32F10x_StdPeriph_Driver/Inc \
+-IPeriph/Inc \
+-ISrv/Inc \
+-IDrivers/STM32F10x_StdPeriph_Driver/inc \
 -IDrivers/CMSIS/Device/ST/STM32F1xx/Include \
 -IDrivers/CMSIS/Include \
 -IFreeRTOS-Kernel/include \
 -IFreeRTOS-Kernel/portable/GCC/ARM_CM3 \
 
+# AS includes
+AS_INCLUDES = $(C_INCLUDES)
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
@@ -120,7 +131,18 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffuncti
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+# CFLAGS += -g -gdwarf-2 -D CMAKE_CXX_FLAGS_RELEASE="-Wa,-mimplicit-it=thumb"
+# CFLAGS += -g -gdwarf-2 -Wextra -pedantic
+CFLAGS += -g -gdwarf-2 -DDEBUG
+ASFLAGS += -g -gdwarf-2 -DDEBUG
+endif
+
+ifeq ($(SYS), Darwin)
+CFLAGS += -DSWO_ITM=0
+ASFLAGS += -DSWO_ITM=0
+else ifeq ($(SYS), Linux)
+CFLAGS += -DSWO_USART=USART1
+ASFLAGS += -DSWO_USART=USART1
 endif
 
 
@@ -152,12 +174,19 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
+OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASMM_SOURCES:.S=.O)))
+vpath %.S $(sort $(dir $(ASMM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/%.O: %.S Makefile | $(BUILD_DIR)
+	$(AS) -c $(ASFLAGS) -E $< -o $@
+	$(AS) -c $(ASFLAGS) $@ -o $@.o
+	mv $@.o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@

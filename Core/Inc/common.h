@@ -23,13 +23,6 @@
 /* Exported types ------------------------------------------------------------*/
     
 /* Private typedef -----------------------------------------------------------*/
-struct __FILE {
-  int handle;
-  /* Whatever you require here. If the only file you are using is */
-  /* standard output using printf() for debugging, no file handling */
-  /* is required. */
-};
-
 
 /* Private defines -----------------------------------------------------------*/
 #define GPIO_IDR_Offset             (uint16_t)0x0008
@@ -135,17 +128,16 @@ struct __FILE {
 // #define PREG_CHECK(registry, key)                               (GET_PERIPH_BB_VAL((uint32_t)&registry, 0, key))
 #define PREG_CHECK(registry, key)                               (Get_BitBandVal(GET_PERIPH_BB_ADDR((uint32_t)&registry, 0, key)))
 
-#define BIT_2_0(per)        (per * 2U)
-#define BIT_2_1(per)        (per * 2U + 1U)
-#define BIT_4_0(per)        (per * 4U)
-#define BIT_4_1(per)        (per * 4U + 1U)
-#define BIT_4_2(per)        (per * 4U + 2U)
-#define BIT_4_3(per)        (per * 4U + 3U)
+// #define BIT_2_0(per)        (per * 2U)
+// #define BIT_2_1(per)        (per * 2U + 1U)
+// #define BIT_4_0(per)        (per * 4U)
+// #define BIT_4_1(per)        (per * 4U + 1U)
+// #define BIT_4_2(per)        (per * 4U + 2U)
+// #define BIT_4_3(per)        (per * 4U + 3U)
 
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-void LED_Blink(GPIO_TypeDef* port, uint16_t pinSource);
 
 
 
