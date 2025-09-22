@@ -3,17 +3,17 @@
   * @file           : heart_beat.c
   *                   This file contains the LED blinking code that represent 
   *                   the system health.
-   ******************************************************************************
+  ******************************************************************************
   * @attention
   *
   ******************************************************************************
   */
  
 
-  /* Includes ------------------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
 #include "heart_beat.h"
 
-/* Global variables ---------------------------------------------------------*/
+/* Global variables ----------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -32,6 +32,8 @@ static void heartBeat_Blink(GPIO_TypeDef*, uint16_t, void (*)(TickType_t), TickT
 
 
 
+
+/*******************************************************************************/
 
 void HeartBeatService(void) {
 
@@ -52,12 +54,12 @@ void HeartBeatService(void) {
 
 
 static void heartBeatTask(void* parameters) {
-    /* Unused parameters. */
-    (void) parameters;
+  /* Unused parameters. */
+  (void) parameters;
 
-    while(1) {
-        heartBeat_Blink(GPIOC, GPIO_PIN_13, vTaskDelay, 1500);
-    }
+  while(1) {
+      heartBeat_Blink(GPIOC, GPIO_PIN_13, vTaskDelay, 1500);
+  }
 }
 
 
