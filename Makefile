@@ -49,13 +49,13 @@ ASM_SOURCES =  \
 startup_stm32f103xb.s \
 $(wildcard Core/*.s) \
 $(wildcard Periph/*.s) \
-$(wildcard Src/*.s)
+$(wildcard Srv/*.s)
 
 # ASMM sources
 ASMM_SOURCES = \
 $(wildcard Core/*.S) \
 $(wildcard Periph/*.S) \
-$(wildcard Src/*.S)
+$(wildcard Srv/*.S)
 
 
 #######################################
@@ -104,7 +104,8 @@ C_DEFS =  \
 -DLSI_VALUE=40000 \
 -DVDD_VALUE=3300 \
 -DPREFETCH_ENABLE=1 \
--DSTM32F103xB
+-DSTM32F103xB \
+-DUSE_FULL_ASSERT
 
 # AS defines
 AS_DEFS = $(C_DEFS) \

@@ -39,6 +39,8 @@ extern "C" {
 #include "led.h"
 #include "usart.h"
 
+#include "heart_beat.h"
+
 /* Exported constants --------------------------------------------------------*/
 
 /* Exported variables --------------------------------------------------------*/
@@ -53,7 +55,15 @@ extern "C" {
 
 
 /* Service functions related to the CM3 BitBand */
+
+/**
+ * 
+ */
 extern void Set_BitBandVal(uint32_t, uint32_t);
+
+/**
+ * 
+ */
 extern uint32_t Get_BitBandVal(uint32_t);
 
 

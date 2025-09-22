@@ -20,15 +20,6 @@
 /* Private function prototypes -----------------------------------------------*/
 
 
- /**
-  * @brief  Initializes the corresponding USART peripheral. 
-  *         The pin is configured as:
-  *           - output, push-pull
-  *           - low speed (2 MHz)
-  *           - no pull-up and no pull-down
-  * @param  port: pointer to the USART port instance
-  * @retval (int) Status of operation (0 = success)
-  */
 int USART_Init(USART_TypeDef* port) {
 
   if (port == USART1) {

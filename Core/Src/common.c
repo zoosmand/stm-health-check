@@ -32,20 +32,6 @@ void Error_Handler(void) {
 
 
 
-/**
-  * @brief  This function blink a LED.
-  * @param  None
-  * @retval None
-  */
-void LED_Blink(GPIO_TypeDef* port, uint16_t pinSource) {
-  (PIN_LEVEL(port, pinSource)) ? PIN_L(port, pinSource) : PIN_H(port, pinSource);
-}
-
-
-
-
-
-
 
 /********************************************************************************/
 /*                         printf() output supply block                         */

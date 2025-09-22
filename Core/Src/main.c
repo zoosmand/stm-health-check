@@ -17,7 +17,6 @@ __IO uint32_t _PREG_ = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
-static void exampleTask( void * parameters );
 
 
 
@@ -25,7 +24,7 @@ static void exampleTask( void * parameters );
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
-  * @brief  Main program.
+  * @brief  Main program entry point.
   * @param  None
   * @retval None
   */
@@ -36,21 +35,10 @@ int main(void) {
   if (!USART_Init(USART1)) FLAG_SET(_PREG_, _PR_USART);
 
   printf("Peripherals rediness list: 0x%08lx\n", _PREG_);
-  /* --------------------------------------- */
-
-  static StaticTask_t exampleTaskTCB;
-  static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
-
-  ( void ) printf( "Example FreeRTOS Project\n" );
-
-  ( void ) xTaskCreateStatic( exampleTask,
-                              "example",
-                              configMINIMAL_STACK_SIZE,
-                              NULL,
-                              configMAX_PRIORITIES - 1U,
-                              &( exampleTaskStack[ 0 ] ),
-                              &( exampleTaskTCB ) );
-
+  
+  
+  /* Run the Heartbeat Service */
+  HeartBeatService();
 
   /* Start the scheduler. */
   vTaskStartScheduler();
@@ -60,35 +48,22 @@ int main(void) {
 
 
 
-#if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
+#if (configCHECK_FOR_STACK_OVERFLOW > 0)
 
-    void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                        char * pcTaskName )
-    {
+    void vApplicationStackOverflowHook(TaskHandle_t xTask, char* pcTaskName) {
         /* Check pcTaskName for the name of the offending task,
          * or pxCurrentTCB if pcTaskName has itself been corrupted. */
-        ( void ) xTask;
-        ( void ) pcTaskName;
+        (void) xTask;
+        (void) pcTaskName;
     }
 
-#endif /* #if ( configCHECK_FOR_STACK_OVERFLOW > 0 ) */
+#endif /* #if (configCHECK_FOR_STACK_OVERFLOW > 0) */
 
 
 
 
 
-/*-----------------------------------------------------------*/
-static void exampleTask( void * parameters ) {
-    /* Unused parameters. */
-    ( void ) parameters;
 
-    while(1) {
-        /* Example Task Code */
-        LED_Blink(GPIOC, GPIO_PIN_13);
-        // printf("test\n");
-        vTaskDelay( 1000 ); /* delay 100 ticks */
-    }
-}
 
 
 

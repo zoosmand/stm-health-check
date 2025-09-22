@@ -138,7 +138,6 @@
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-void LED_Blink(GPIO_TypeDef* port, uint16_t pinSource);
 
 
 
