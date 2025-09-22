@@ -11,15 +11,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* Global variables ---------------------------------------------------------*/
+/* Global variables ----------------------------------------------------------*/
+__IO uint32_t _PREG_ = 0;
 
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
 static void exampleTask( void * parameters );
-
-int LED_Init(GPIO_TypeDef*, uint16_t);
-int USART_Init(USART_TypeDef*);
 
 
 
@@ -32,6 +30,13 @@ int USART_Init(USART_TypeDef*);
   * @retval None
   */
 int main(void) {
+
+  /* Initialization of necessary peripherals */
+  if (!LED_Init(GPIOC, GPIO_PIN_13)) FLAG_SET(_PREG_, _PR_HEART_BEAT_LED);
+  if (!USART_Init(USART1)) FLAG_SET(_PREG_, _PR_USART);
+
+  printf("Peripherals rediness list: 0x%08lx\n", _PREG_);
+  /* --------------------------------------- */
 
   static StaticTask_t exampleTaskTCB;
   static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
@@ -80,7 +85,7 @@ static void exampleTask( void * parameters ) {
     while(1) {
         /* Example Task Code */
         LED_Blink(GPIOC, GPIO_PIN_13);
-        printf("test\n");
+        // printf("test\n");
         vTaskDelay( 1000 ); /* delay 100 ticks */
     }
 }
@@ -130,8 +135,8 @@ void SystemInit (void) {
   }
 
   /* JTAG-DP disabled and SW-DP enabled */
-  // CLEAR_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG);
-  // SET_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG_JTAGDISABLE);
+  CLEAR_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG);
+  SET_BIT(AFIO->MAPR, AFIO_MAPR_SWJ_CFG_JTAGDISABLE);
 
   /* HSE enable and wait until it runs */
   PREG_SET(RCC->CR, RCC_CR_HSEON_Pos);
@@ -208,7 +213,7 @@ void SystemInit (void) {
   
   
   /* Stop ticking peripheral while debugging */
-  #if (DEBUG != 0)
+  #ifdef DEBUG
     SET_BIT(DBGMCU->CR , (
         DBGMCU_CR_DBG_IWDG_STOP
       | DBGMCU_CR_DBG_WWDG_STOP
@@ -216,50 +221,6 @@ void SystemInit (void) {
   #endif /* DEBUG */
 
 
-  LED_Init(GPIOC, GPIO_PIN_13);
-  USART_Init(USART1);
 
 }
 
-
-
-/**
-  * @brief  Initiates PIN 13 on GPIOC port as outputs to blink correspondent LEDs
-  *  on the board. Pins are set on the lowest speed, push-pull, no pull-up neither pull-down
-  * @param  None
-  * @return None
-  */
-int LED_Init(GPIO_TypeDef* port, uint16_t pinSource) {
-
-  pinSource = (pinSource >= 8) ? (pinSource - 8)*4 : pinSource*4;
-
-  MODIFY_REG(port->CRH, 0xf << pinSource, _IOS_2 << pinSource);
-
-  return 0;
-}
-
-
-/**
-  * @brief  Initiates PIN 13 on GPIOC port as outputs to blink correspondent LEDs
-  *  on the board. Pins are set on the lowest speed, push-pull, no pull-up neither pull-down
-  * @param  None
-  * @return None
-  */
-int USART_Init(USART_TypeDef* port) {
-
-  MODIFY_REG(GPIOA->CRH, GPIO_PIN_9_Mask|GPIO_PIN_10_Mask, (((_IOS_50|_AF_PP) << (GPIO_PIN_9-8)*4)|(_IN_FL << (GPIO_PIN_10-8)*4)));
-
-
-  #define USART1_BAUDRATE         115200
-  #define USART1_FRACTION         0x0001 /* If baudrate = 9600 -> Fractual = 0x0120 */
-  #define USART1_BAUDRATE_CALC    ((configCPU_CLOCK_HZ / (USART1_BAUDRATE * 16)) << 4) | USART1_FRACTION
-
-  port->BRR = USART1_BAUDRATE_CALC;
-  port->CR1 |= (USART_CR1_TE|USART_CR1_RE|USART_CR1_RXNEIE|USART_CR1_UE);
-  
-  /* USART1_IRQn interrupt configuration */
-  NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
-  NVIC_EnableIRQ(USART1_IRQn);
-
-  return 0;
-}

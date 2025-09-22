@@ -36,17 +36,23 @@ extern "C" {
 #include "common.h"
 #include "stm32f10x_it.h"
 
+#include "led.h"
+#include "usart.h"
+
 /* Exported constants --------------------------------------------------------*/
 
 /* Exported variables --------------------------------------------------------*/
+// __IO uint32_t _PREG_;
 
 /* Private defines -----------------------------------------------------------*/
-// #define SWO_ITM     0
-// #define SWO_DSPL    0
-#define SWO_USART   USART1
-
+/* Peripherals readiness flags */
+#define _PR_HEART_BEAT_LED    0
+#define _PR_USART             1
 
 /* Exported functions prototypes ---------------------------------------------*/
+
+
+/* Service functions related to the CM3 BitBand */
 extern void Set_BitBandVal(uint32_t, uint32_t);
 extern uint32_t Get_BitBandVal(uint32_t);
 

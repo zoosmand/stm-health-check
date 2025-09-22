@@ -13,6 +13,8 @@
             "${workspaceRoot}/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
             "${workspaceRoot}/Drivers/STM32F10x_StdPeriph_Driver/inc",
             "${workspaceRoot}/Core/Inc",
+            "${workspaceRoot}/Periph/Inc",
+            "${workspaceRoot}/Src/Inc",
             "${workspaceRoot}/FreeRTOS-Kernel/include",
             "${workspaceRoot}/FreeRTOS-Kernel/portable/GCC/ARM_CM3"
          ],
@@ -61,6 +63,8 @@
             "${workspaceRoot}/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
             "${workspaceRoot}/Drivers/STM32F10x_StdPeriph_Driver/inc",
             "${workspaceRoot}/Core/Inc",
+            "${workspaceRoot}/Periph/Inc",
+            "${workspaceRoot}/Src/Inc",
             "${workspaceRoot}/FreeRTOS-Kernel/include",
             "${workspaceRoot}/FreeRTOS-Kernel/portable/GCC/ARM_CM3"
          ],

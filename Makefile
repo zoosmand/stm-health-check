@@ -13,6 +13,7 @@
 ######################################
 TARGET = F103C8_health_check
 
+SHELL = /bin/bash
 
 ######################################
 # building variables
@@ -21,7 +22,9 @@ TARGET = F103C8_health_check
 DEBUG = 1
 # optimization
 OPT = -Og
-
+# platform
+ARCH := $(shell uname -m)
+SYS := $(shell uname -s)
 
 #######################################
 # paths
@@ -45,12 +48,14 @@ FreeRTOS-Kernel/portable/MemMang/heap_4.c
 ASM_SOURCES =  \
 startup_stm32f103xb.s \
 $(wildcard Core/*.s) \
-$(wildcard Periph/*.s)
+$(wildcard Periph/*.s) \
+$(wildcard Src/*.s)
 
-# ASM sources
+# ASMM sources
 ASMM_SOURCES = \
 $(wildcard Core/*.S) \
-$(wildcard Periph/*.S)
+$(wildcard Periph/*.S) \
+$(wildcard Src/*.S)
 
 
 #######################################
@@ -122,13 +127,21 @@ AS_INCLUDES = $(C_INCLUDES)
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
 # CFLAGS += -g -gdwarf-2 -D CMAKE_CXX_FLAGS_RELEASE="-Wa,-mimplicit-it=thumb"
-# CFLAGS += -g -gdwarf-2 -Wall -Wextra -pedantic
-CFLAGS += -g -gdwarf-2 -Wall
-ASFLAGS += $(CFLAGS)
+# CFLAGS += -g -gdwarf-2 -Wextra -pedantic
+CFLAGS += -g -gdwarf-2 -DDEBUG
+ASFLAGS += -g -gdwarf-2 -DDEBUG
+endif
+
+ifeq ($(SYS), Darwin)
+CFLAGS += -DSWO_ITM=0
+ASFLAGS += -DSWO_ITM=0
+else ifeq ($(SYS), Linux)
+CFLAGS += -DSWO_USART=USART1
+ASFLAGS += -DSWO_USART=USART1
 endif
 
 
