@@ -36,10 +36,11 @@ extern "C" {
 #include "common.h"
 #include "stm32f10x_it.h"
 
-#include "led.h"
+#include "gpio.h"
 #include "usart.h"
 
 #include "heart_beat.h"
+#include "ds18b20.h"
 
 /* Exported constants --------------------------------------------------------*/
 
@@ -50,6 +51,7 @@ extern "C" {
 /* Peripherals readiness flags */
 #define _PR_HEART_BEAT_LED    0
 #define _PR_USART             1
+#define _PR_ONEWIRE_BUS       2
 
 /* Exported functions prototypes ---------------------------------------------*/
 

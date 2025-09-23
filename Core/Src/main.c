@@ -31,7 +31,8 @@ __IO uint32_t _PREG_ = 0;
 int main(void) {
 
   /* Initialization of necessary peripherals */
-  if (!LED_Init(GPIOC, GPIO_PIN_13)) FLAG_SET(_PREG_, _PR_HEART_BEAT_LED);
+  if (!LED_Init(HEAR_BEAT_PORT, HEAR_BEAT_PIN)) FLAG_SET(_PREG_, _PR_HEART_BEAT_LED);
+  if (!OneWire_Init(OW_PORT, OW_PIN)) FLAG_SET(_PREG_, _PR_ONEWIRE_BUS);
   if (!USART_Init(USART1)) FLAG_SET(_PREG_, _PR_USART);
 
   printf("Peripherals rediness list: 0x%08lx\n", _PREG_);
@@ -39,6 +40,9 @@ int main(void) {
   
   /* Run the Heartbeat Service */
   HeartBeatService();
+
+  /* Run the Temperature Measurment Service */
+  TemperatureMeasurmentService();
 
   /* Start the scheduler. */
   vTaskStartScheduler();
@@ -157,7 +161,12 @@ void SystemInit (void) {
 
 
 
+  SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
+  // DWT->CYCCNT = 0;
+  // SET_BIT(DWT->CTRL, DWT_CTRL_CYCEVTENA_Msk);
 
+  // __DSB();
+  // __ISB();
 
 
   /*----------------------------------------------------------------------------*/
@@ -178,8 +187,8 @@ void SystemInit (void) {
   /* APB2 peripherals */
   SET_BIT(RCC->APB2ENR, (
       RCC_APB2ENR_IOPAEN
+    | RCC_APB2ENR_IOPBEN
     | RCC_APB2ENR_IOPCEN
-    | RCC_APB2ENR_IOPEEN
     | RCC_APB2ENR_USART1EN
     | RCC_APB2ENR_SPI1EN
   ));

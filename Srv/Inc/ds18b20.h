@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : heart_beat.h
-  * @brief          : Header for heart_beat.c file.
-  *                   This file contains the common defines for LED blinking 
-  *                   that represent the system health.
+  * @file           : ds18b20.h
+  * @brief          : Header for ds18b20.c file.
+  *                   This file contains the common defines for DS18B20
+  *                   temperature measurment service.
   ******************************************************************************
   * @attention
   *
@@ -11,8 +11,8 @@
   */
  
   /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HEART_BEAT_H
-#define __HEART_BEAT_H
+#ifndef __DS18B20_H
+#define __DS18B20_H
 
 #ifdef __cplusplus
   extern "C" {
@@ -20,24 +20,21 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
-
-#define HEAR_BEAT_PORT   GPIOC
-#define HEAR_BEAT_PIN    GPIO_PIN_13
+#include "onewire.h"
 
 
 /* Exported functions prototypes ---------------------------------------------*/
 
 /**
-  * @brief  Heartbeat LED blinking service
+  * @brief  Temperature measurement service based on OneWire devices
   * @param  none
   * @retval none
  */
-void HeartBeatService(void);
+void TemperatureMeasurmentService(void);
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __HEART_BEAT_H */
+#endif /* __DS18B20_H */
