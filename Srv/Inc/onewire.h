@@ -30,13 +30,13 @@ typedef struct {
 
 
 /* Exported types ------------------------------------------------------------*/
+extern SemaphoreHandle_t gOwMutex;
 
 /* Exported constants --------------------------------------------------------*/
 
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions prototypes ---------------------------------------------*/
-// void OneWire_MutexInit(void);
 
 int OneWire_Reset(void);
 
@@ -83,7 +83,6 @@ OneWireDevice_t* Get_OwDevices(void);
 #define OneWire_Low     PIN_H(OneWire_PORT, OneWire_PIN)
 #define OneWire_High    PIN_L(OneWire_PORT, OneWire_PIN)
 #define OneWire_Level   (PIN_LEVEL(OneWire_PORT, OneWire_PIN))
-// #define OneWire_Level   READ_BIT(OneWire_PORT->IDR, 1<<OneWire_PIN)
 
 
 

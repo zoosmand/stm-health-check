@@ -30,7 +30,7 @@ static void oneWireBusConfigurationTask(void* parameters);
 #define _delay_ms vTaskDelay
 
 /* Global variables ----------------------------------------------------------*/
-static SemaphoreHandle_t gOwMutex;
+SemaphoreHandle_t gOwMutex;
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t lastfork;
@@ -40,28 +40,44 @@ static OneWireDevice_t oneWireDevices[16];
 
 
 
+/*******************************************************************************/
+
 // -------------------------------------------------------------
-static BaseType_t ow_lock(TickType_t to) {
-  return xSemaphoreTake(gOwMutex, to);
+void OneWireBusConfigurationInit(void) {
+
+  static StaticTask_t oneWireBusConfigurationTaskTCB;
+  static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
+
+  (void) xTaskCreateStatic(
+                            oneWireBusConfigurationTask,
+                            "OW Bus Init",
+                            configMINIMAL_STACK_SIZE,
+                            NULL,
+                            tskIDLE_PRIORITY + 1U,
+                            &(oneWireBusConfigurationTaskStack[0]),
+                            &(oneWireBusConfigurationTaskTCB)
+                          );
 }
 
 
 
+
 // -------------------------------------------------------------
-static void ow_unlock(void) {
-  xSemaphoreGive(gOwMutex);
+static void oneWireBusConfigurationTask(void* parameters) {
+  /* Unused parameters. */
+  (void) parameters;
+
+  while(1) {
+    gOwMutex = xSemaphoreCreateMutex();
+    OneWire_Search();
+    vTaskDelete(NULL);
+  }
 }
 
 
 
 
 // -------------------------------------------------------------
-// void OneWire_MutexInit(void) {
-//   gOwMutex = xSemaphoreCreateMutex();
-// }
-
-
-// -------------------------------------------------------------  
 int OneWire_Reset(void) {
 
   taskENTER_CRITICAL();
@@ -276,37 +292,5 @@ OneWireDevice_t* Get_OwDevices(void) {
 
 
 
-
-
-/*******************************************************************************/
-
-void OneWireBusConfigurationInit(void) {
-
-  static StaticTask_t oneWireBusConfigurationTaskTCB;
-  static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
-
-  (void) xTaskCreateStatic(
-                            oneWireBusConfigurationTask,
-                            "OW Bus Init",
-                            configMINIMAL_STACK_SIZE,
-                            NULL,
-                            tskIDLE_PRIORITY + 1U,
-                            &(oneWireBusConfigurationTaskStack[0]),
-                            &(oneWireBusConfigurationTaskTCB)
-                          );
-}
-
-
-
-static void oneWireBusConfigurationTask(void* parameters) {
-  /* Unused parameters. */
-  (void) parameters;
-
-  while(1) {
-    gOwMutex = xSemaphoreCreateMutex();
-    OneWire_Search();
-    vTaskDelete(NULL);
-  }
-}
 
 
