@@ -22,6 +22,10 @@
 #include "main.h"
 
 
+#define HEAR_BEAT_PORT   GPIOC
+#define HEAR_BEAT_PIN    GPIO_PIN_13
+
+
 /* Exported functions prototypes ---------------------------------------------*/
 
 /**

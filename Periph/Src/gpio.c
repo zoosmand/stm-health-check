@@ -11,7 +11,7 @@
  
 
   /* Includes ------------------------------------------------------------------*/
-#include "led.h"
+#include "gpio.h"
 
 /* Global variables ---------------------------------------------------------*/
 
@@ -31,6 +31,23 @@ int LED_Init(GPIO_TypeDef *port, uint16_t pin) {
         shift = (pin - 8) * 4;
         MODIFY_REG(port->CRH, (0xf << shift), (GPIO_MODE_OUTPUT_PP_2MHZ << shift));
     }
+
+    return 0;
+}
+
+
+int OneWire_Init(GPIO_TypeDef *port, uint16_t pin) {
+    uint32_t shift;
+    #define GPIO_MODE_OUTPUT_OD_10MHZ (_IOS_10 | _GPO_OD)
+
+    if (pin < 8) {
+        shift = pin * 4;
+        MODIFY_REG(port->CRL, (0xf << shift), (GPIO_MODE_OUTPUT_OD_10MHZ << shift));
+    } else {
+        shift = (pin - 8) * 4;
+        MODIFY_REG(port->CRH, (0xf << shift), (GPIO_MODE_OUTPUT_OD_10MHZ << shift));
+    }
+    PIN_H(port, pin);
 
     return 0;
 }
