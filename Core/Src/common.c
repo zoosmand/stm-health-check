@@ -110,8 +110,30 @@ int _write(int32_t file, char *ptr, int32_t len) {
   * @retval None
   */
 #define assert_param(expr) ((expr) ? (void)0U : assert_failed((uint8_t *)__FILE__, __LINE__))
+
 /* Exported functions ------------------------------------------------------- */
 void assert_failed(uint8_t *file, uint32_t line);
 #else
 #define assert_param(expr) ((void)0U)
 #endif /* USE_FULL_ASSERT */
+
+
+
+
+__STATIC_INLINE void _DWT_Init(void) {
+  // SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCEVTENA_Msk | DWT_CTRL_CYCCNTENA_Msk;
+  __DSB();
+  __ISB();
+}
+
+
+
+void _delay_us(uint32_t us) {
+  _DWT_Init();
+  uint32_t const start = DWT->CYCCNT;
+  uint32_t const ticks = us * (configCPU_CLOCK_HZ / 1000000U);
+  while ((READ_REG(DWT->CYCCNT) - start) < ticks) { __asm volatile("nop"); }
+  DWT->CTRL &= ~(DWT_CTRL_CYCEVTENA_Msk | DWT_CTRL_CYCCNTENA_Msk);
+}

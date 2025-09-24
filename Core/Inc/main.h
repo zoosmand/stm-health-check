@@ -68,6 +68,10 @@ extern void Set_BitBandVal(uint32_t, uint32_t);
  */
 extern uint32_t Get_BitBandVal(uint32_t);
 
+/**
+ * 
+ */
+void _delay_us(uint32_t);
 
 
 #ifdef __cplusplus

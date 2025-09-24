@@ -32,7 +32,7 @@ int main(void) {
 
   /* Initialization of necessary peripherals */
   if (!LED_Init(HEAR_BEAT_PORT, HEAR_BEAT_PIN)) FLAG_SET(_PREG_, _PR_HEART_BEAT_LED);
-  if (!OneWire_Init(OW_PORT, OW_PIN)) FLAG_SET(_PREG_, _PR_ONEWIRE_BUS);
+  if (!OneWire_Init(OneWire_PORT, OneWire_PIN)) FLAG_SET(_PREG_, _PR_ONEWIRE_BUS);
   if (!USART_Init(USART1)) FLAG_SET(_PREG_, _PR_USART);
 
   printf("Peripherals rediness list: 0x%08lx\n", _PREG_);
@@ -42,6 +42,7 @@ int main(void) {
   HeartBeatService();
 
   /* Run the Temperature Measurment Service */
+  OneWireBusConfigurationInit();
   TemperatureMeasurmentService();
 
   /* Start the scheduler. */

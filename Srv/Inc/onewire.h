@@ -26,38 +26,64 @@
 typedef struct {
   uint8_t   addr[8];
   uint8_t   spad[9];
-} ow_device_t;
+} OneWireDevice_t;
 
 
 /* Exported types ------------------------------------------------------------*/
 
 /* Exported constants --------------------------------------------------------*/
-extern uint32_t _OWREG_;
 
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions prototypes ---------------------------------------------*/
-void OW_Reset(void);
-void OW_WriteBit(uint8_t);
-void OW_Write(uint8_t*);
-uint8_t OW_ReadBit(void);
-void OW_Read(uint8_t*);
-void OW_CRC8(uint8_t*, uint8_t);
-void OW_Search(void);
-int8_t OW_Error_Handler(void);
-ow_device_t* Get_OwDevices(void);
+// void OneWire_MutexInit(void);
 
-/* Private defines -----------------------------------------------------------*/
+int OneWire_Reset(void);
+
+void OneWire_WriteByte(uint8_t);
+
+uint8_t OneWire_ReadBit(void);
+
+void OneWire_ReadByte(uint8_t*);
+
+uint8_t OneWire_CRC8(uint8_t, uint8_t);
+
+void OneWire_Search(void);
+
+void OneWireBusConfigurationInit(void);
+
+/**
+ * @brief   Defines parasitic powered devices on OnWire bus.
+ * @param   addr pointer to OneWire device address
+ * @retval  (uint8_t) status of power supply
+ */
+uint8_t OneWire_ReadPowerSupply(uint8_t*);
+
+/**
+ * @brief   Determines the existent of the device with given address, on the bus.
+ * @param   addr pointer to OneWire device address
+ * @retval  (uint8_t) status of operation
+ */
+int OneWire_MatchROM(uint8_t*);
+
+
+OneWireDevice_t* Get_OwDevices(void);
+
+
+/* Exported defines -----------------------------------------------------------*/
 #define SearchROM       0xf0
 #define ReadROM         0x33
 #define MatchROM        0x55
 #define SkipROM         0xcc
+#define ReadPowerSupply 0xb4
 
-#define OW_PORT   GPIOB
-#define OW_PIN    GPIO_PIN_9
+#define OneWire_PORT    GPIOB
+#define OneWire_PIN     GPIO_PIN_9_Pos
 
-#define _OLF_     0 // On-Line Flag, i.e. an OW device answered on reset 
-#define _CRCERF_  1 // CRC Error Flag 
+#define OneWire_Low     PIN_H(OneWire_PORT, OneWire_PIN)
+#define OneWire_High    PIN_L(OneWire_PORT, OneWire_PIN)
+#define OneWire_Level   (PIN_LEVEL(OneWire_PORT, OneWire_PIN))
+// #define OneWire_Level   READ_BIT(OneWire_PORT->IDR, 1<<OneWire_PIN)
 
 
 

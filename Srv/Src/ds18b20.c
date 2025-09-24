@@ -22,10 +22,6 @@ static void temperatureMeasurementTask(void* parameters);
 
 /**
   * @brief  Temperature measurement workflow
-  * @param  port: pointer to the GPIO port instance
-  * @param  pin:  pin number (0..15)
-  * @param  callbackDelay:  pointer to delay function 
-  * @param  delay:  delay value 
   * @retval none
   */
 static void temperatureMeasurement_Workflow(void); 
@@ -38,14 +34,14 @@ static void temperatureMeasurement_Workflow(void);
 void TemperatureMeasurmentService(void) {
 
   static StaticTask_t temperatureMeasurementTaskTCB;
-  static StackType_t temperatureMeasurementTaskStack[configMINIMAL_STACK_SIZE];
+  static StackType_t temperatureMeasurementTaskStack[configMINIMAL_STACK_SIZE * 4];
 
   (void) xTaskCreateStatic(
                             temperatureMeasurementTask,
-                            "Temperature Measurment",
-                            configMINIMAL_STACK_SIZE,
+                            "Temp Meas",
+                            configMINIMAL_STACK_SIZE * 4,
                             NULL,
-                            configMAX_PRIORITIES - 1U,
+                            tskIDLE_PRIORITY + 1,
                             &(temperatureMeasurementTaskStack[0]),
                             &(temperatureMeasurementTaskTCB)
                           );
@@ -66,7 +62,9 @@ static void temperatureMeasurementTask(void* parameters) {
 
 
 static void temperatureMeasurement_Workflow(void) {
-  OW_Reset();
+  // OneWire_Search();
+  OneWireDevice_t* devs = Get_OwDevices();
+  printf("test\n");
   vTaskDelay(10000);
 }
 
