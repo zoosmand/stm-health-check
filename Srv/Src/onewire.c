@@ -20,9 +20,6 @@ __STATIC_INLINE int OneWire_ErrorHandler(void);
 
 __STATIC_INLINE void OneWire_WriteBit(uint8_t);
 
-static BaseType_t ow_lock(TickType_t);
-static void ow_unlock(void);
-
 static void oneWireBusConfigurationTask(void* parameters);
 
 
@@ -44,19 +41,19 @@ static OneWireDevice_t oneWireDevices[16];
 
 // -------------------------------------------------------------
 void OneWireBusConfigurationInit(void) {
-
+  
   static StaticTask_t oneWireBusConfigurationTaskTCB;
   static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
-
+  
   (void) xTaskCreateStatic(
-                            oneWireBusConfigurationTask,
-                            "OW Bus Init",
-                            configMINIMAL_STACK_SIZE,
-                            NULL,
-                            tskIDLE_PRIORITY + 1U,
-                            &(oneWireBusConfigurationTaskStack[0]),
-                            &(oneWireBusConfigurationTaskTCB)
-                          );
+    oneWireBusConfigurationTask,
+    "OW Bus Init",
+    configMINIMAL_STACK_SIZE,
+    NULL,
+    tskIDLE_PRIORITY + 1U,
+    &(oneWireBusConfigurationTaskStack[0]),
+    &(oneWireBusConfigurationTaskTCB)
+  );
 }
 
 
@@ -66,21 +63,42 @@ void OneWireBusConfigurationInit(void) {
 static void oneWireBusConfigurationTask(void* parameters) {
   /* Unused parameters. */
   (void) parameters;
-
+  
   while(1) {
     gOwMutex = xSemaphoreCreateMutex();
     OneWire_Search();
     vTaskDelete(NULL);
+    // vTaskDelay(pdMS_TO_TICKS(60000)); // Research devices in the bus minutetly
   }
 }
 
 
 
 
+/*******************************************************************************/
+
+// -------------------------------------------------------------
+__STATIC_INLINE uint32_t irq_lock(void) {
+  uint32_t p = __get_PRIMASK();
+  __disable_irq();
+  return p;
+}
+
+
+
+
+// -------------------------------------------------------------
+__STATIC_INLINE void irq_unlock(uint32_t p) {
+  __set_PRIMASK(p);
+  __enable_irq();
+}
+
+
+
 // -------------------------------------------------------------
 int OneWire_Reset(void) {
 
-  taskENTER_CRITICAL();
+  uint32_t p = irq_lock();
 
   OneWire_High;
   _delay_us(580);
@@ -99,14 +117,16 @@ int OneWire_Reset(void) {
 
   _delay_us(580 - i);
 
-  taskEXIT_CRITICAL();
+  irq_unlock(p);
   return status;
 }
 
 
 // -------------------------------------------------------------  
 __STATIC_INLINE void OneWire_WriteBit(uint8_t bit) {
-  taskENTER_CRITICAL();
+
+  uint32_t p = irq_lock();
+
   OneWire_High;
   if (bit) {
     _delay_us(6);
@@ -117,7 +137,8 @@ __STATIC_INLINE void OneWire_WriteBit(uint8_t bit) {
     OneWire_Low;
     _delay_us(10);
   }
-  taskEXIT_CRITICAL();
+
+  irq_unlock(p);
 }
 
 
@@ -133,7 +154,9 @@ void OneWire_WriteByte(uint8_t byte) {
 
 // -------------------------------------------------------------  
 uint8_t OneWire_ReadBit(void) {
-  taskENTER_CRITICAL();
+
+  uint32_t p = irq_lock();
+
   OneWire_High;
   _delay_us(6);
   OneWire_Low;
@@ -141,7 +164,7 @@ uint8_t OneWire_ReadBit(void) {
   uint8_t level = OneWire_Level;
   _delay_us(55);
 
-  taskEXIT_CRITICAL();
+  irq_unlock(p);
   
   return level;
 }

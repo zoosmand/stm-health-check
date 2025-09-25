@@ -116,7 +116,7 @@ static void temperatureMeasurement_Workflow(void) {
     (int8_t)((*t1 & 0x0000fff0) >> 4), (uint8_t)(((*t1 & 0x0000000f) * 100) >> 4),
     (int8_t)((*t2 & 0x0000fff0) >> 4), (uint8_t)(((*t2 & 0x0000000f) * 100) >> 4)
   );
-  vTaskDelay(10000);
+  vTaskDelay(pdMS_TO_TICKS(10000));
 }
 
 

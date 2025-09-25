@@ -121,7 +121,6 @@ void assert_failed(uint8_t *file, uint32_t line);
 
 
 __STATIC_INLINE void _DWT_Init(void) {
-  // SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
   DWT->CYCCNT = 0;
   DWT->CTRL |= DWT_CTRL_CYCEVTENA_Msk | DWT_CTRL_CYCCNTENA_Msk;
   __DSB();

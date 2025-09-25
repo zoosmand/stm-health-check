@@ -163,11 +163,6 @@ void SystemInit (void) {
 
 
   SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
-  // DWT->CYCCNT = 0;
-  // SET_BIT(DWT->CTRL, DWT_CTRL_CYCEVTENA_Msk);
-
-  // __DSB();
-  // __ISB();
 
 
   /*----------------------------------------------------------------------------*/
