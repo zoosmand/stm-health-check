@@ -27,7 +27,7 @@ static void temperatureMeasurementTask(void* parameters);
   * @brief  Temperature measurement workflow
   * @retval none
   */
-static void temperatureMeasurement_Workflow(void); 
+static int temperatureMeasurement_Workflow(void); 
 
 __STATIC_INLINE void dS18B20_Command(uint8_t);
 
@@ -94,7 +94,10 @@ static void temperatureMeasurementTask(void* parameters) {
   (void) parameters;
   
   while(1) {
-    temperatureMeasurement_Workflow();
+    if (temperatureMeasurement_Workflow()) {
+      vTaskDelete(NULL);
+    }
+    vTaskDelay(pdMS_TO_TICKS(10000));
   }
 }
 
@@ -102,7 +105,8 @@ static void temperatureMeasurementTask(void* parameters) {
 
 
 // -------------------------------------------------------------  
-static void temperatureMeasurement_Workflow(void) {
+static int temperatureMeasurement_Workflow(void) {
+  if (OneWire_Reset()) return (1);
 
   OneWireDevice_t* devs = Get_OwDevices();
 
@@ -116,7 +120,7 @@ static void temperatureMeasurement_Workflow(void) {
     (int8_t)((*t1 & 0x0000fff0) >> 4), (uint8_t)(((*t1 & 0x0000000f) * 100) >> 4),
     (int8_t)((*t2 & 0x0000fff0) >> 4), (uint8_t)(((*t2 & 0x0000000f) * 100) >> 4)
   );
-  vTaskDelay(pdMS_TO_TICKS(10000));
+  return (0);
 }
 
 

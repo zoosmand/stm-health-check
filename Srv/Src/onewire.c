@@ -30,8 +30,9 @@ static void oneWireBusConfigurationTask(void* parameters);
 SemaphoreHandle_t gOwMutex;
 
 /* Private variables ---------------------------------------------------------*/
+#define NUM_DEVICES_ON_BUS 16
 static uint8_t lastfork;
-static OneWireDevice_t oneWireDevices[16];
+static OneWireDevice_t oneWireDevices[NUM_DEVICES_ON_BUS];
 
 
 
@@ -42,6 +43,7 @@ static OneWireDevice_t oneWireDevices[16];
 // -------------------------------------------------------------
 void OneWireBusConfigurationInit(void) {
   
+  gOwMutex = xSemaphoreCreateMutex();
   static StaticTask_t oneWireBusConfigurationTaskTCB;
   static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
   
@@ -65,10 +67,10 @@ static void oneWireBusConfigurationTask(void* parameters) {
   (void) parameters;
   
   while(1) {
-    gOwMutex = xSemaphoreCreateMutex();
-    OneWire_Search();
-    vTaskDelete(NULL);
-    // vTaskDelay(pdMS_TO_TICKS(60000)); // Research devices in the bus minutetly
+    if (OneWire_Search()) {
+      vTaskDelete(NULL);
+    }
+    vTaskDelay(pdMS_TO_TICKS(60000)); // Research devices in the bus minutetly
   }
 }
 
@@ -103,7 +105,7 @@ int OneWire_Reset(void) {
   OneWire_High;
   _delay_us(580);
   OneWire_Low;
-  _delay_us(15);
+  // _delay_us(15);
   
   int i = 0;
   int status = 1;
@@ -115,7 +117,12 @@ int OneWire_Reset(void) {
     _delay_us(1);
   }
 
-  _delay_us(580 - i);
+  /* to prevent non pulled-up pin to response */
+  if (i == 1) {
+    status = 1;
+  } else {
+    _delay_us(580 - i);
+  }
 
   irq_unlock(p);
   return status;
@@ -272,11 +279,13 @@ __STATIC_INLINE int OneWire_Enumerate(uint8_t* addr) {
 
 
 // -------------------------------------------------------------
-void OneWire_Search(void) {
+int OneWire_Search(void) {
+  if (OneWire_Reset()) return (1);
   lastfork = 65;
-  for (uint8_t i = 0; i < 2; i++) {
+  for (uint8_t i = 0; i < NUM_DEVICES_ON_BUS; i++) {
     if (OneWire_Enumerate(oneWireDevices[i].addr)) break;
   }
+  return (0);
 }
 
 
