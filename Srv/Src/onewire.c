@@ -27,7 +27,6 @@ static void oneWireBusConfigurationTask(void* parameters);
 #define _delay_ms vTaskDelay
 
 /* Global variables ----------------------------------------------------------*/
-SemaphoreHandle_t gOwMutex;
 
 /* Private variables ---------------------------------------------------------*/
 #define NUM_DEVICES_ON_BUS 16
@@ -43,7 +42,6 @@ static OneWireDevice_t oneWireDevices[NUM_DEVICES_ON_BUS];
 // -------------------------------------------------------------
 void OneWireBusConfigurationInit(void) {
   
-  gOwMutex = xSemaphoreCreateMutex();
   static StaticTask_t oneWireBusConfigurationTaskTCB;
   static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
   
@@ -70,7 +68,7 @@ static void oneWireBusConfigurationTask(void* parameters) {
     if (OneWire_Search()) {
       vTaskDelete(NULL);
     }
-    vTaskDelay(pdMS_TO_TICKS(60000)); // Research devices in the bus minutetly
+    vTaskDelay(60000); // Research devices in the bus minutetly
   }
 }
 
@@ -105,7 +103,7 @@ int OneWire_Reset(void) {
   OneWire_High;
   _delay_us(580);
   OneWire_Low;
-  // _delay_us(15);
+  _delay_us(15);
   
   int i = 0;
   int status = 1;

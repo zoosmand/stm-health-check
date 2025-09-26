@@ -30,7 +30,6 @@ typedef struct {
 
 
 /* Exported types ------------------------------------------------------------*/
-extern SemaphoreHandle_t gOwMutex;
 
 /* Exported constants --------------------------------------------------------*/
 
