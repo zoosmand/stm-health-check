@@ -25,6 +25,8 @@ OPT = -Og
 # platform
 ARCH := $(shell uname -m)
 SYS := $(shell uname -s)
+# output
+OUTPUT = 1
 
 #######################################
 # paths
@@ -133,16 +135,20 @@ CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-
 ifeq ($(DEBUG), 1)
 # CFLAGS += -g -gdwarf-2 -D CMAKE_CXX_FLAGS_RELEASE="-Wa,-mimplicit-it=thumb"
 # CFLAGS += -g -gdwarf-2 -Wextra -pedantic
-CFLAGS += -g -gdwarf-2 -DDEBUG
-ASFLAGS += -g -gdwarf-2 -DDEBUG
+DEBUGFLAGS = -g -gdwarf-2 -DDEBUG
+CFLAGS += $(DEBUGFLAGS)
+ASFLAGS += $(DEBUGFLAGS)
 endif
 
+ifeq ($(OUTPUT), 1)
+OUTPUTFLAGS = -DDSPL_OUT=putc_dspl_wh2004
 ifeq ($(SYS), Darwin)
-CFLAGS += -DSWO_ITM=0
-ASFLAGS += -DSWO_ITM=0
+OUTPUTFLAGS += -DSWO_ITM=0 
 else ifeq ($(SYS), Linux)
-CFLAGS += -DSWO_USART=USART1
-ASFLAGS += -DSWO_USART=USART1
+OUTPUTFLAGS += -DUSART_OUT=USART1
+endif
+CFLAGS += $(OUTPUTFLAGS)
+ASFLAGS += $(OUTPUTFLAGS)
 endif
 
 

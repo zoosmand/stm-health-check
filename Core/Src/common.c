@@ -24,7 +24,7 @@ __STATIC_INLINE void _putc(uint8_t ch);
   * @param  None
   * @retval None
   */
-void Error_Handler(void) {
+void __attribute__((weak)) Error_Handler(void) {
   while (1) {
     //
   }
@@ -70,13 +70,13 @@ __STATIC_INLINE void _putc(uint8_t ch) {
     ITM_SendCharChannel(ch, SWO_ITM);
  #endif
 
- #ifdef SWO_DSPL
-    PrintCharDisplay(ch, SWO_DSPL);
+ #ifdef DSPL_OUT
+    putc_dspl(ch);
  #endif
 
- #ifdef SWO_USART
-    while (!(PREG_CHECK(SWO_USART->SR, USART_SR_TXE_Pos)));
-    SWO_USART->DR = ch;
+ #ifdef USART_OUT
+    while (!(PREG_CHECK(USART_OUT->SR, USART_SR_TXE_Pos)));
+    USART_OUT->DR = ch;
   #endif
 }
 
@@ -121,7 +121,6 @@ void assert_failed(uint8_t *file, uint32_t line);
 
 
 __STATIC_INLINE void _DWT_Init(void) {
-  // SET_BIT(CoreDebug->DEMCR, CoreDebug_DEMCR_TRCENA_Msk);
   DWT->CYCCNT = 0;
   DWT->CTRL |= DWT_CTRL_CYCEVTENA_Msk | DWT_CTRL_CYCCNTENA_Msk;
   __DSB();

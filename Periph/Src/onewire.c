@@ -20,9 +20,6 @@ __STATIC_INLINE int OneWire_ErrorHandler(void);
 
 __STATIC_INLINE void OneWire_WriteBit(uint8_t);
 
-static BaseType_t ow_lock(TickType_t);
-static void ow_unlock(void);
-
 static void oneWireBusConfigurationTask(void* parameters);
 
 
@@ -30,11 +27,11 @@ static void oneWireBusConfigurationTask(void* parameters);
 #define _delay_ms vTaskDelay
 
 /* Global variables ----------------------------------------------------------*/
-SemaphoreHandle_t gOwMutex;
 
 /* Private variables ---------------------------------------------------------*/
+#define NUM_DEVICES_ON_BUS 16
 static uint8_t lastfork;
-static OneWireDevice_t oneWireDevices[16];
+static OneWireDevice_t oneWireDevices[NUM_DEVICES_ON_BUS];
 
 
 
@@ -44,19 +41,19 @@ static OneWireDevice_t oneWireDevices[16];
 
 // -------------------------------------------------------------
 void OneWireBusConfigurationInit(void) {
-
+  
   static StaticTask_t oneWireBusConfigurationTaskTCB;
   static StackType_t oneWireBusConfigurationTaskStack[configMINIMAL_STACK_SIZE];
-
+  
   (void) xTaskCreateStatic(
-                            oneWireBusConfigurationTask,
-                            "OW Bus Init",
-                            configMINIMAL_STACK_SIZE,
-                            NULL,
-                            tskIDLE_PRIORITY + 1U,
-                            &(oneWireBusConfigurationTaskStack[0]),
-                            &(oneWireBusConfigurationTaskTCB)
-                          );
+    oneWireBusConfigurationTask,
+    "OW Bus Init",
+    configMINIMAL_STACK_SIZE,
+    NULL,
+    tskIDLE_PRIORITY + 1U,
+    &(oneWireBusConfigurationTaskStack[0]),
+    &(oneWireBusConfigurationTaskTCB)
+  );
 }
 
 
@@ -66,21 +63,42 @@ void OneWireBusConfigurationInit(void) {
 static void oneWireBusConfigurationTask(void* parameters) {
   /* Unused parameters. */
   (void) parameters;
-
+  
   while(1) {
-    gOwMutex = xSemaphoreCreateMutex();
-    OneWire_Search();
-    vTaskDelete(NULL);
+    if (OneWire_Search()) {
+      vTaskDelete(NULL);
+    }
+    vTaskDelay(60000); // Research devices in the bus minutetly
   }
 }
 
 
 
 
+/*******************************************************************************/
+
+// -------------------------------------------------------------
+__STATIC_INLINE uint32_t irq_lock(void) {
+  uint32_t p = __get_PRIMASK();
+  __disable_irq();
+  return p;
+}
+
+
+
+
+// -------------------------------------------------------------
+__STATIC_INLINE void irq_unlock(uint32_t p) {
+  __set_PRIMASK(p);
+  __enable_irq();
+}
+
+
+
 // -------------------------------------------------------------
 int OneWire_Reset(void) {
 
-  taskENTER_CRITICAL();
+  uint32_t p = irq_lock();
 
   OneWire_High;
   _delay_us(580);
@@ -97,16 +115,23 @@ int OneWire_Reset(void) {
     _delay_us(1);
   }
 
-  _delay_us(580 - i);
+  /* to prevent non pulled-up pin to response */
+  if (i == 1) {
+    status = 1;
+  } else {
+    _delay_us(580 - i);
+  }
 
-  taskEXIT_CRITICAL();
+  irq_unlock(p);
   return status;
 }
 
 
 // -------------------------------------------------------------  
 __STATIC_INLINE void OneWire_WriteBit(uint8_t bit) {
-  taskENTER_CRITICAL();
+
+  uint32_t p = irq_lock();
+
   OneWire_High;
   if (bit) {
     _delay_us(6);
@@ -117,7 +142,8 @@ __STATIC_INLINE void OneWire_WriteBit(uint8_t bit) {
     OneWire_Low;
     _delay_us(10);
   }
-  taskEXIT_CRITICAL();
+
+  irq_unlock(p);
 }
 
 
@@ -133,7 +159,9 @@ void OneWire_WriteByte(uint8_t byte) {
 
 // -------------------------------------------------------------  
 uint8_t OneWire_ReadBit(void) {
-  taskENTER_CRITICAL();
+
+  uint32_t p = irq_lock();
+
   OneWire_High;
   _delay_us(6);
   OneWire_Low;
@@ -141,7 +169,7 @@ uint8_t OneWire_ReadBit(void) {
   uint8_t level = OneWire_Level;
   _delay_us(55);
 
-  taskEXIT_CRITICAL();
+  irq_unlock(p);
   
   return level;
 }
@@ -249,11 +277,13 @@ __STATIC_INLINE int OneWire_Enumerate(uint8_t* addr) {
 
 
 // -------------------------------------------------------------
-void OneWire_Search(void) {
+int OneWire_Search(void) {
+  if (OneWire_Reset()) return (1);
   lastfork = 65;
-  for (uint8_t i = 0; i < 2; i++) {
+  for (uint8_t i = 0; i < NUM_DEVICES_ON_BUS; i++) {
     if (OneWire_Enumerate(oneWireDevices[i].addr)) break;
   }
+  return (0);
 }
 
 

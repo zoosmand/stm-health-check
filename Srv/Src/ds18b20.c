@@ -16,6 +16,8 @@
 /* Global variables ----------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
+static SemaphoreHandle_t gOwMutex;
+
 
 /* Private defines -----------------------------------------------------------*/
 #define _delay_ms vTaskDelay
@@ -27,7 +29,7 @@ static void temperatureMeasurementTask(void* parameters);
   * @brief  Temperature measurement workflow
   * @retval none
   */
-static void temperatureMeasurement_Workflow(void); 
+static int temperatureMeasurement_Workflow(void); 
 
 __STATIC_INLINE void dS18B20_Command(uint8_t);
 
@@ -71,6 +73,7 @@ __STATIC_INLINE void ow_unlock(void) {
 // -------------------------------------------------------------  
 void TemperatureMeasurmentService(void) {
   
+  gOwMutex = xSemaphoreCreateMutex();
   static StaticTask_t temperatureMeasurementTaskTCB;
   static StackType_t temperatureMeasurementTaskStack[configMINIMAL_STACK_SIZE * 4];
   
@@ -94,7 +97,10 @@ static void temperatureMeasurementTask(void* parameters) {
   (void) parameters;
   
   while(1) {
-    temperatureMeasurement_Workflow();
+    if (temperatureMeasurement_Workflow()) {
+      vTaskDelete(NULL);
+    }
+    vTaskDelay(4000);
   }
 }
 
@@ -102,12 +108,16 @@ static void temperatureMeasurementTask(void* parameters) {
 
 
 // -------------------------------------------------------------  
-static void temperatureMeasurement_Workflow(void) {
+static int temperatureMeasurement_Workflow(void) {
+  if (OneWire_Reset()) return (1);
 
   OneWireDevice_t* devs = Get_OwDevices();
 
   for (uint8_t i = 0; i < 2; i++) {
-    DS18B20_GetTemperatureMeasurment(&devs[i]);
+    if (DS18B20_GetTemperatureMeasurment(&devs[i])) {
+      devs[i].spad[0] = 0x00;
+      devs[i].spad[1] = 0x08;
+    }
   }
 
   uint32_t* t1 = (int32_t*)&devs[0].spad;
@@ -116,7 +126,7 @@ static void temperatureMeasurement_Workflow(void) {
     (int8_t)((*t1 & 0x0000fff0) >> 4), (uint8_t)(((*t1 & 0x0000000f) * 100) >> 4),
     (int8_t)((*t2 & 0x0000fff0) >> 4), (uint8_t)(((*t2 & 0x0000000f) * 100) >> 4)
   );
-  vTaskDelay(10000);
+  return (0);
 }
 
 
@@ -165,7 +175,7 @@ static int dS18B20_Read(uint8_t len, uint8_t* buf, uint8_t reverse) {
 // -------------------------------------------------------------  
 static int dS18B20_ReadScratchpad(uint8_t* buf, uint8_t* addr) {
 
-  if (ow_lock(pdMS_TO_TICKS(1000)) != pdPASS) return -1;
+  // if (ow_lock(2000) != pdPASS) return -1;
 
   if (OneWire_MatchROM(addr)) return (1);
   dS18B20_Command(ReadScratchpad);
@@ -177,7 +187,7 @@ static int dS18B20_ReadScratchpad(uint8_t* buf, uint8_t* addr) {
   }
   if (crc) return (1);
   
-  ow_unlock();
+  // ow_unlock();
   return (0);
 }
 
@@ -187,7 +197,7 @@ static int dS18B20_ReadScratchpad(uint8_t* buf, uint8_t* addr) {
 // -------------------------------------------------------------
 static int dS18B20_ConvertTemperature(uint8_t* addr) {
 
-  if (ow_lock(pdMS_TO_TICKS(1000)) != pdPASS) return -1;
+  // if (ow_lock(2000) != pdPASS) return -1;
   
   if (*addr) {
     
@@ -199,12 +209,10 @@ static int dS18B20_ConvertTemperature(uint8_t* addr) {
     
     if (pps) {
       PIN_H(OneWire_PORT, OneWire_PIN);
-      
       _delay_ms(750);
-      
       PIN_L(OneWire_PORT, OneWire_PIN);
     } else {
-      dS18B20_WaitStatus(3);
+      dS18B20_WaitStatus(3);  
     }
   } else {
     if (OneWire_Reset()) return (1);
@@ -214,7 +222,7 @@ static int dS18B20_ConvertTemperature(uint8_t* addr) {
     dS18B20_WaitStatus(3);
   }
 
-  ow_unlock();
+  // ow_unlock();
   return (0);
 }
 
@@ -267,11 +275,8 @@ static void dS18B20_ErrorHandler(void) {
 // -------------------------------------------------------------  
 static int DS18B20_GetTemperatureMeasurment(OneWireDevice_t *dev) {
 
-  dS18B20_ConvertTemperature(dev->addr);
-  
-  _delay_ms(2);
-  
-  dS18B20_ReadScratchpad(dev->spad, dev->addr);
+  if (dS18B20_ConvertTemperature(dev->addr)) return (1);
+  if (dS18B20_ReadScratchpad(dev->spad, dev->addr)) return (1);
   dS18B20_WaitStatus(3);
 
   return (0);

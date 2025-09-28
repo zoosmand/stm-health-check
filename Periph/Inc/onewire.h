@@ -30,7 +30,6 @@ typedef struct {
 
 
 /* Exported types ------------------------------------------------------------*/
-extern SemaphoreHandle_t gOwMutex;
 
 /* Exported constants --------------------------------------------------------*/
 
@@ -48,7 +47,7 @@ void OneWire_ReadByte(uint8_t*);
 
 uint8_t OneWire_CRC8(uint8_t, uint8_t);
 
-void OneWire_Search(void);
+int OneWire_Search(void);
 
 void OneWireBusConfigurationInit(void);
 
