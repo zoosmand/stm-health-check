@@ -132,7 +132,8 @@
 
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+void __attribute__((weak)) Error_Handler(void);
+int __attribute__((weak)) putc_dspl(char);
 
 
 

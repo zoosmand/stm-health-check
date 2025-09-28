@@ -24,7 +24,7 @@ __STATIC_INLINE void _putc(uint8_t ch);
   * @param  None
   * @retval None
   */
-void Error_Handler(void) {
+void __attribute__((weak)) Error_Handler(void) {
   while (1) {
     //
   }
