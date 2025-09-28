@@ -70,13 +70,13 @@ __STATIC_INLINE void _putc(uint8_t ch) {
     ITM_SendCharChannel(ch, SWO_ITM);
  #endif
 
- #ifdef SWO_DSPL
-    PrintCharDisplay(ch, SWO_DSPL);
+ #ifdef DSPL_OUT
+    putc_dspl(ch);
  #endif
 
- #ifdef SWO_USART
-    while (!(PREG_CHECK(SWO_USART->SR, USART_SR_TXE_Pos)));
-    SWO_USART->DR = ch;
+ #ifdef USART_OUT
+    while (!(PREG_CHECK(USART_OUT->SR, USART_SR_TXE_Pos)));
+    USART_OUT->DR = ch;
   #endif
 }
 
