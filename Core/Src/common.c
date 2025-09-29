@@ -66,8 +66,8 @@ __STATIC_INLINE uint32_t ITM_SendCharChannel(uint32_t ch, uint32_t channel) {
 __STATIC_INLINE void _putc(uint8_t ch) {
   if (ch == '\n') _putc('\r');
 
-  #ifdef SWO_ITM
-    ITM_SendCharChannel(ch, SWO_ITM);
+  #ifdef ITM_OUT
+    ITM_SendCharChannel(ch, ITM_OUT);
  #endif
 
  #ifdef DSPL_OUT

@@ -143,7 +143,7 @@ endif
 ifeq ($(OUTPUT), 1)
 OUTPUTFLAGS = -DDSPL_OUT=putc_dspl_wh2004
 ifeq ($(SYS), Darwin)
-OUTPUTFLAGS += -DSWO_ITM=0 
+OUTPUTFLAGS += -DITM_OUT=0 
 else ifeq ($(SYS), Linux)
 OUTPUTFLAGS += -DUSART_OUT=USART1
 endif

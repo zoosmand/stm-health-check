@@ -38,6 +38,7 @@ extern "C" {
 
 #include "gpio.h"
 #include "usart.h"
+#include "onewire.h"
 
 #include "heart_beat.h"
 #include "ds18b20.h"
